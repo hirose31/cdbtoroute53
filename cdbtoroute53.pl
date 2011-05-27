@@ -177,15 +177,27 @@ sub append_change
 {
     my ($action, $domain, $type, $resourceRecords) = @_;
 
-    print "<Change><Action>" . $action . "</Action>";
-    print "<ResourceRecordSet><Name>" . $domain . "</Name>";
-    print "<Type>" . $type . "</Type>";
-    print "<TTL>" . $resourceRecords->{TTL} . "</TTL>";
-    print "<ResourceRecords>";
+    printf(q{
+      <Change>
+        <Action>%s</Action>
+        <ResourceRecordSet>
+          <Name>%s</Name>
+          <Type>%s</Type>
+          <TTL>%d</TTL>
+},
+            $action,
+            $domain,
+            $type,
+            $resourceRecords->{TTL},
+           );
+    print "          <ResourceRecords>\n";
     foreach my $rr (@{ $resourceRecords->{ResourceRecord} }) {
-        print "<ResourceRecord><Value>$rr</Value></ResourceRecord>";
+        print "            <ResourceRecord><Value>$rr</Value></ResourceRecord>\n";
     }
-    print "</ResourceRecords></ResourceRecordSet></Change>";
+    print q{          </ResourceRecords>
+        </ResourceRecordSet>
+      </Change>
+};
 }
 
 sub arrays_equal
@@ -216,8 +228,8 @@ if ($previous_cdb ne "") {
 
 my $desired_state = parse_cdb($zone, $cdb);
     
-print '<?xml version="1.0" encoding="UTF-8"?><ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2011-05-05/">' .
-      '<ChangeBatch><Comment>Change made with cdbtoroute53.pl</Comment><Changes>';
+print qq{<?xml version="1.0" encoding="UTF-8"?>\n<ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2011-05-05/">\n} .
+      qq{  <ChangeBatch>\n    <Comment>Change made with cdbtoroute53.pl</Comment>\n    <Changes>\n};
 
 # Create anything as neccessary
 foreach my $domain (  keys %{ $desired_state } ) {

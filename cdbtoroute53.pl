@@ -234,6 +234,7 @@ print qq{<?xml version="1.0" encoding="UTF-8"?>\n<ChangeResourceRecordSetsReques
 # Create anything as neccessary
 foreach my $domain (  keys %{ $desired_state } ) {
     foreach my $type ( keys %{ $desired_state->{$domain} } ) {
+        next if $type =~ /^(SOA|NS)$/;
         if (defined($previous_state->{$domain}->{$type})) {
 
             # Do nothing if previous and desired state is the same

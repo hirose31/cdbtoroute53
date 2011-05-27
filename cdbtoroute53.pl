@@ -181,10 +181,11 @@ sub append_change
     print "<ResourceRecordSet><Name>" . $domain . "</Name>";
     print "<Type>" . $type . "</Type>";
     print "<TTL>" . $resourceRecords->{TTL} . "</TTL>";
+    print "<ResourceRecords>";
     foreach my $rr (@{ $resourceRecords->{ResourceRecord} }) {
         print "<ResourceRecord><Value>$rr</Value></ResourceRecord>";
     }
-    print "</ResourceRecordSet></Change>";
+    print "</ResourceRecords></ResourceRecordSet></Change>";
 }
 
 sub arrays_equal
@@ -215,7 +216,7 @@ if ($previous_cdb ne "") {
 
 my $desired_state = parse_cdb($zone, $cdb);
     
-print '<?xml version="1.0" encoding="UTF-8"?><ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2010-10-01/">' .
+print '<?xml version="1.0" encoding="UTF-8"?><ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2011-05-05/">' .
       '<ChangeBatch><Comment>Change made with cdbtoroute53.pl</Comment><Changes>';
 
 # Create anything as neccessary

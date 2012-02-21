@@ -71,8 +71,11 @@ use Getopt::Long;
 use Pod::Usage;
 use Data::GUID;
 use CDB_File;
+# requires Net::DNS >= 0.68
 use Net::DNS::Domain;
+use Net::DNS::DomainName;
 use Net::DNS::RR;
+use Net::DNS::Text;
 use Data::Dumper;
 
 # Net::DNS:RR to Value conversion
@@ -124,7 +127,7 @@ sub parse_cdb {
     my $value;
 
     while (($key, $value) = each %data) {
-        my $domain = decode Net::DNS::Domain( \$key, 0, {} )->string;
+        my $domain = Net::DNS::DomainName->decode( \$key, 0, {} )->name . '.';
 
         # Ignore domains outside of our zone
         next if ($domain !~ m/$zone$/);
@@ -147,10 +150,10 @@ sub parse_cdb {
 
         # Convert into a Net::DNS::RR object
         my $rdata = substr($value, 15);
-        my $rr = new Net::DNS::Domain( $domain )->encode(0, {}) .
+        my $rr = Net::DNS::DomainName->new( $domain )->encode(0, {}) .
                  pack("n", $type) . pack("n", 1) . pack("N", $ttl) . 
                  pack("n", length($rdata)) . $rdata;
-        my ($rrobj, $offset) = Net::DNS::RR->parse(\$rr, 0);
+        my ($rrobj, $offset) = Net::DNS::RR->decode(\$rr, 0);
 
         # Is this record of a supported type?
         if (!defined( $TYPES->{ $rrobj->type })) {

@@ -169,10 +169,27 @@ END_WARNING
 
 sub print_example_usage {
     my ($prog) = @_;
-    print STDERR "Examples:\n";
-    print STDERR "\t\$ $PROGNAME --keyname fred-personal -- -X POST -H \"Content-Type: text/xml; charset=UTF-8\" --upload-file create_request.xml https://route53.amazonaws.com/2010-10-01/hostedzone\t# create new hosted zone\n";
-    print STDERR "\t\$ $PROGNAME --keyname fred-personal -- https://route53.amazonaws.com/2010-10-01/hostedzone/Z123456\t# get hosted zone";
-    print STDERR "\t\$ $PROGNAME --keyname fred-personal -- https://route53.amazonaws.com/2010-10-01/hostedzone\t# list hosted zones";
+    print STDERR <<EOF;
+Examples:
+
+List hosted zones:
+
+    \$ $PROGNAME --keyname fred-personal -- \
+        https://route53.amazonaws.com/2010-10-01/hostedzone
+
+Create new hosted zone:
+
+    \$ $PROGNAME --keyname fred-personal -- -X POST \
+        -H \"Content-Type: text/xml; charset=UTF-8\" \
+        --upload-file create_request.xml \
+        https://route53.amazonaws.com/2010-10-01/hostedzone
+
+Get hosted zone Z123456:
+
+    \$ $PROGNAME --keyname fred-personal -- \
+        https://route53.amazonaws.com/2010-10-01/hostedzone/Z123456
+
+EOF
     return;
 }
 

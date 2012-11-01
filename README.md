@@ -1,24 +1,19 @@
-cdbtoroute53.pl
-========================
-
-ABSTRACT
-------------------------
+# cdbtoroute53
 
 Convert a TinyDNS CDB, or the differences between two TinyDNS CDBs, to
 Amazon Route 53 ChangeResourceRecordSetsRequest XML.
 
-EXAMPLE
-------------------------
 
-    cdbtoroute53.pl --zonename example.com --cdb data.cdb > example.com.xml
-    dnscurl.pl --keyname my-aws-account -- \
-      -H "Content-Type: text/xml; charset=UTF-8" \
-      -X POST \
-      --upload-file ./example.com.xml \
-      https://route53.amazonaws.com/2011-05-05/hostedzone/Z163DCRDMY61DH/rrset
+### USAGE
 
-ORIGINAL CODE
-------------------------
+```bash
+cdbtoroute53.pl --zonename example.com | dnscurl.pl -c -z Z123456
+```
 
-* https://forums.aws.amazon.com/thread.jspa?threadID=56530
+Use ``--help`` for each program for more options.
 
+
+### ORIGINAL CODE
+
+* cdbtoroute53.pl: https://forums.aws.amazon.com/thread.jspa?threadID=56530
+* dnscurl.pl: http://aws.amazon.com/developertools/9706686376855511

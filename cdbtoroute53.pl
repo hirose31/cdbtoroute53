@@ -24,7 +24,7 @@ cdbtoroute53.pl - Convert a TinyDNS CDB, or the differences between two
 
 This script generates CreateHostedZoneRequest XML.
 
-Dependencies: Data::GUID.
+Dependencies: Data::GUID Net::DNS CDB_File
 
 For help, try:
 
@@ -32,7 +32,7 @@ cdbtoroute53.pl --help
 
 Usage example:
 
-cdbtoroute53.pl --zonename example.com --hosted-zone-id Z123ABCD [--previous-cdb old.cdb] --cdb data.cdb
+cdbtoroute53.pl --zonename example.com [--previous-cdb old.cdb] --cdb data.cdb
 
 =head1 OPTIONS
 
@@ -47,10 +47,6 @@ Print a help message and exits.
 CDBs contain records that span many zones. This script operates on just one zone at a time,
 specify the zone with this option.
 
-=item B<--hosted-zone-id> [zone id]
-
-The Route53 Hosted Zone ID for the suppled zone
-
 =item B<--previous-cdb> [cdbfile]
 
 If this argument is supplied, this script will detect the differences between this CDB
@@ -60,7 +56,7 @@ into a set of DELETE and CREATE changes.
 =item B<--cdb> [cdbfile]
 
 The CDB file to parse for the current desired state of DNS data.
-G
+
 =back
 
 =cut
@@ -76,7 +72,6 @@ use Net::DNS::Domain;
 use Net::DNS::DomainName;
 use Net::DNS::RR;
 use Net::DNS::Text;
-use Data::Dumper;
 
 # Net::DNS:RR to Value conversion
 my $TYPES = {

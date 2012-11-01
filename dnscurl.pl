@@ -160,6 +160,8 @@ if ($curl_result == -1) {
     exit 4;
 }
 
+print "\n"; # extra padding
+
 # forward curl's exit code
 exit $? >> 8;
 

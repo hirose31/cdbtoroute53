@@ -18,7 +18,7 @@ use strict;
 # begin customizing here
 
 my $CURL = "curl";
-my $URL  = "https://route53.amazonaws.com/2010-10-01/hostedzone";
+my $URL  = "https://route53.amazonaws.com/2012-02-29/hostedzone";
 
 # stop customizing here
 

@@ -231,7 +231,7 @@ if ($previous_cdb ne "") {
 
 my $desired_state = parse_cdb($zone, $cdb);
 
-print qq{<?xml version="1.0" encoding="UTF-8"?>\n<ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2011-05-05/">\n} .
+print qq{<?xml version="1.0" encoding="UTF-8"?>\n<ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2012-02-29/">\n} .
       qq{  <ChangeBatch>\n    <Comment>Change made with cdbtoroute53.pl</Comment>\n    <Changes>\n};
 
 # Create anything as neccessary

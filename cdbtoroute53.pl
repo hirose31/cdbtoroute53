@@ -56,6 +56,7 @@ into a set of DELETE and CREATE changes.
 =item B<--cdb> [cdbfile]
 
 The CDB file to parse for the current desired state of DNS data.
+(default: ./data.cdb)
 
 =back
 
@@ -100,9 +101,17 @@ my $options = GetOptions(
     "help"              => \$help,
 );
 
-if ($help or !$options or $zonename eq "" or $cdb eq "") {
+if ($help or !$options or $zonename eq "") {
     pod2usage(1);
     exit;
+}
+
+if ($cdb eq "") {
+    $cdb = "data.cdb";
+    if (!-f $cdb) {
+        print STDERR "./data.cdb doesn't exist. try passing --cdb <file>\n";
+        exit 1;
+    }
 }
 
 # Canonicalise the zone we are searching for

@@ -1,23 +1,23 @@
-#!/usr/bin/env perl 
+#!/usr/bin/env perl
 
-# Copyright 2010 Amazon Technologies, Inc.  
+# Copyright 2010 Amazon Technologies, Inc.
 # Licensed under the Apache License, Version 2.0 (the "License");
-# 
-# You may not use this file except in compliance with the License. 
+#
+# You may not use this file except in compliance with the License.
 # You may obtain a copy of the License at:
 #
 # http://aws.amazon.com/apache2.0
 #
-# This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+# This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 # CONDITIONS OF ANY KIND, either express or implied.
 #
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 =head1 cdbtoroute53.pl
 
 cdbtoroute53.pl - Convert a TinyDNS CDB, or the differences between two
-                  TinyDNS CDBs, to Amazon Route 53 ChangeResourceRecordSetsRequest 
+                  TinyDNS CDBs, to Amazon Route 53 ChangeResourceRecordSetsRequest
                   XML
 
 =head1 SYNOPSIS
@@ -151,7 +151,7 @@ sub parse_cdb {
         # Convert into a Net::DNS::RR object
         my $rdata = substr($value, 15);
         my $rr = Net::DNS::DomainName->new( $domain )->encode(0, {}) .
-                 pack("n", $type) . pack("n", 1) . pack("N", $ttl) . 
+                 pack("n", $type) . pack("n", 1) . pack("N", $ttl) .
                  pack("n", length($rdata)) . $rdata;
         my ($rrobj, $offset) = Net::DNS::RR->decode(\$rr, 0);
 
@@ -159,7 +159,7 @@ sub parse_cdb {
         if (!defined( $TYPES->{ $rrobj->type })) {
             die ("Encountered a record of type '" . $rrobj->type . "' for '$domain'. Amazon Route 53 does not currently support this record type");
         }
-        
+
         # Check that the TTLs match
         if (defined($parsed_tree->{ $domain }->{ $rrobj->type }->{TTL})) {
             if ($parsed_tree->{ $domain }->{ $rrobj->type }->{TTL} != $rrobj->ttl) {
@@ -209,7 +209,7 @@ sub arrays_equal
 
     my @a = sort(@{ $a });
     my @b = sort(@{ $b });
-    
+
     if (length(@a) != length(@b)) {
         return 0;
     }
@@ -230,7 +230,7 @@ if ($previous_cdb ne "") {
 }
 
 my $desired_state = parse_cdb($zone, $cdb);
-    
+
 print qq{<?xml version="1.0" encoding="UTF-8"?>\n<ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2011-05-05/">\n} .
       qq{  <ChangeBatch>\n    <Comment>Change made with cdbtoroute53.pl</Comment>\n    <Changes>\n};
 
@@ -242,7 +242,7 @@ foreach my $domain (  keys %{ $desired_state } ) {
 
             # Do nothing if previous and desired state is the same
             if ($previous_state->{$domain}->{$type}->{TTL} == $desired_state->{$domain}->{$type}->{TTL} &&
-                arrays_equal($previous_state->{$domain}->{$type}->{ResourceRecord}, 
+                arrays_equal($previous_state->{$domain}->{$type}->{ResourceRecord},
                              $desired_state->{$domain}->{$type}->{ResourceRecord})) {
                 # Remove from the previous state
                 delete $previous_state->{$domain}->{$type};

@@ -48,16 +48,21 @@ my $secretsFile = $DEFAULTSECRETSFILE;
 my $keyFile;
 my $keyFriendlyName;
 my $debug = 0;
+my $help = 0;
+
 GetOptions(
     'keyfile:s' => \$keyFile,
     'keyname=s' => \$keyFriendlyName,
     'debug' => \$debug,
+    'help', => \$help,
 );
 
 $secretsFile = $keyFile if defined $keyFile;
 
-if (!defined $keyFriendlyName) {
+if (!defined $keyFriendlyName || $help) {
     print STDERR "Usage: $PROGNAME --keyname <friendly key name> -- [curl-options]\n\n";
+    print_secrets_file_usage();
+    print STDERR "\n---\n";
     print_example_usage();
     exit 1;
 }
@@ -142,7 +147,11 @@ sub print_secrets_file_usage {
 Welcome to AWS DNS curl! You'll need to install your AWS credentials to get started.
 
 For security reasons, this tool will not accept your AWS secret access key on the
-command line. Instead, you need to store them in a file named $secretsFile.
+command line. Instead, you need to store them in one of the following locations:
+
+    $LOCALSECRETSFILE
+    $secretsFile
+
 This file must be owned by you, and must be readable by only you.
 
 For example:
@@ -174,19 +183,19 @@ Examples:
 
 List hosted zones:
 
-    \$ $PROGNAME --keyname fred-personal -- \
+    \$ $PROGNAME --keyname fred-personal -- \\
         https://route53.amazonaws.com/2010-10-01/hostedzone
 
 Create new hosted zone:
 
-    \$ $PROGNAME --keyname fred-personal -- -X POST \
-        -H \"Content-Type: text/xml; charset=UTF-8\" \
-        --upload-file create_request.xml \
+    \$ $PROGNAME --keyname fred-personal -- -X POST \\
+        -H \"Content-Type: text/xml; charset=UTF-8\" \\
+        --upload-file create_request.xml \\
         https://route53.amazonaws.com/2010-10-01/hostedzone
 
 Get hosted zone Z123456:
 
-    \$ $PROGNAME --keyname fred-personal -- \
+    \$ $PROGNAME --keyname fred-personal -- \\
         https://route53.amazonaws.com/2010-10-01/hostedzone/Z123456
 
 EOF

@@ -198,20 +198,31 @@ close $curl_args_file or die "Couldn't close curl config file: $!";
 # modify ARGV
 if ($create) {
   push @ARGV, '-X', 'POST',
-              '-H', 'Content-Type: text/xml; charset=UTF-8',
+              '-H', '"Content-Type: text/xml; charset=UTF-8"',
               '--upload-file', $createFile;
 }
-unshift @ARGV, "-v" if $debug;
+unshift @ARGV, ($debug ? "-v" : "-s");
 my $url = $URL;
 $url .= "/$zoneId" if $zoneId;
 $url .= '/rrset' if $create;
 push @ARGV, $url;
 
 # fork/exec curl, forwarding the user's command line arguments
-system("echo", $CURL, "--config", $curl_args_file_name, @ARGV) if $debug;
-system($CURL, "--config", $curl_args_file_name, @ARGV);
+my @cmd = ($CURL, "--config", $curl_args_file_name, @ARGV);
+
+# use tidy if avail
+`which tidy`;
+if ($? == 0) {
+  push @cmd, '| tidy -xml -i -q';
+}
+
+# run
+my $cmd = join(" ", @cmd);
+print "echo $cmd" if $debug;
+system($cmd);
 my $curl_result = $?;
 
+# handle err
 if ($curl_result == -1) {
     die "failed to execute $CURL: $!";
 } elsif ($curl_result & 127) {

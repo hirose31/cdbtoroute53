@@ -1,16 +1,16 @@
 #!/usr/bin/perl -w
 
 # Copyright 2010 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"). You may not 
-# use this file except in compliance with the License. A copy of the License is 
+#
+# Licensed under the Apache License, Version 2.0 (the "License"). You may not
+# use this file except in compliance with the License. A copy of the License is
 # located at
 #
 # http://aws.amazon.com/apache2.0/
-# 
-# or in the "license" file accompanying this file. This file is distributed on 
-# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
-# express or implied. See the License for the specific language governing 
+#
+# or in the "license" file accompanying this file. This file is distributed on
+# an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
 use strict;
@@ -63,7 +63,7 @@ if (!defined $keyFriendlyName) {
 }
 
 if (-f $secretsFile) {
-    open(my $CONFIG, $secretsFile) || die "can't open $secretsFile: $!"; 
+    open(my $CONFIG, $secretsFile) || die "can't open $secretsFile: $!";
 
     my @stats = stat($CONFIG);
 
@@ -99,7 +99,7 @@ my $aws_key_id = $keyentry->{id};
 my $aws_secret_key = $keyentry->{key};
 
 # don't assume the local clock is correct -- fetch the Date according to the server
-my $base_url = find_base_url_from_args(@ARGV); 
+my $base_url = find_base_url_from_args(@ARGV);
 if (!defined $base_url) {
     print STDERR "I couldn't find anything that looks like a URL in your curl arguments.\n\n";
     print_example_usage();
@@ -205,7 +205,7 @@ sub run_cmd_read {
     die "cannot fork: $!" unless defined $pid;
     if ($pid == 0) {
         exec($cmd, @args) or die "Can't exec $cmd : $!";
-    } 
+    }
 
     # slurp the output
     my @output = (<$README>);
@@ -213,9 +213,9 @@ sub run_cmd_read {
     unless ($result) {
         die "Error closing $cmd pipe: $!" if $!;
     }
-    
+
    my $exit_code = ($? >> 8);
    die "Ouch, $cmd_str failed with exit status $exit_code\n" if ($exit_code != 0);
-   
+
    return \@output;
 }

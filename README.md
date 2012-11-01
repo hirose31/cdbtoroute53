@@ -32,7 +32,8 @@ Then run (assumes data.cdb is in current dir):
 cdbtoroute53.pl --zonename example.com | dnscurl.pl -c -z Z123456
 ```
 
-Use ``--help`` on each program for more options.
+Use ``--help`` on each program for more options. For pretty-printed output,
+simply make sure that ``tidy`` is available on your path.
 
 
 ### ORIGINAL CODE

@@ -291,6 +291,8 @@ Create new hosted zone:
         -H \"Content-Type: text/xml; charset=UTF-8\" \\
         --upload-file create_request.xml
 
+For pretty-printed output, simply make sure that 'tidy' is available on your path.
+
 EOF
     return;
 }

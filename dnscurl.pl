@@ -32,6 +32,7 @@ use File::Temp qw(tempfile);
 use File::Basename qw(basename);
 use Fcntl qw/F_SETFD F_GETFD/;
 use IO::Handle;
+use IO::Select;
 
 use constant STAT_MODE => 2;
 use constant STAT_UID => 4;
@@ -52,13 +53,65 @@ my $zoneId;
 my $debug = 0;
 my $help = 0;
 
+# commands
+my $create = 0;
+my $createFile;
+my $get = 0;
+my $list = 0;
+
 GetOptions(
+    # commands
+    'l|list'      => \$list,
+    'g|get'       => \$get,
+    'c|create:s'  => sub {
+      my($flag, $val) = @_;
+      $create = 1;
+      $createFile = $val;
+    },
+
+    # options
     'f|keyfile:s' => \$keyFile,
     'k|keyname:s' => \$keyFriendlyName,
-    'z|zone:s'  => \$zoneId,
-    'debug'     => \$debug,
-    'help',     => \$help,
+    'z|zone:s'    => \$zoneId,
+    'debug'       => \$debug,
+    'help',       => \$help,
 );
+
+if (!($list || $get || $create)) {
+  $list = 1; # default to list
+}
+
+if (($get || $create) && ! defined $zoneId) {
+  print STDERR "--zone is required with --get and --create requests\n";
+  exit 1;
+}
+
+if ($create && !$createFile) {
+
+  # no filename given, try to read from STDIN
+
+  my $s = IO::Select->new();
+  $s->add(\*STDIN);
+
+  my $buff = "";
+  if ($s->can_read(.5)) {
+    while (<STDIN>) {
+      $buff .= $_;
+    }
+  }
+  if (length($buff) == 0) {
+    print STDERR "when using --create you must either pass a filename or\n" .
+                 "pass XML data via STDIN\n";
+    exit 3;
+  }
+
+  # copy to tempfile
+  my ($in, $in_file) = tempfile(UNLINK => 1);
+  print $in $buff;
+  close($in) or die "Couldn't close temp input file: $!";
+  $createFile = $in_file;
+
+}
 
 $secretsFile = $keyFile if defined $keyFile;
 
@@ -142,14 +195,22 @@ print $curl_args_file "header = \"X-Amzn-Authorization: AWS3-HTTPS AWSAccessKeyI
 
 close $curl_args_file or die "Couldn't close curl config file: $!";
 
-my $url = $URL;
-if ($zoneId) {
-    $url .= "/$zoneId";
+# modify ARGV
+if ($create) {
+  push @ARGV, '-X POST', '-H "Content-Type: text/xml; charset=UTF-8"',
+              '--upload-file', $createFile;
 }
+if ($debug) {
+  unshift @ARGV, "-v"
+}
+my $url = $URL;
+$url .= "/$zoneId" if $zoneId;
+$url .= '/rrset' if $create;
 push @ARGV, $url;
 
 # fork/exec curl, forwarding the user's command line arguments
-system($CURL, @ARGV, "--config", $curl_args_file_name);
+system("echo", $CURL, "--config", $curl_args_file_name, @ARGV) if $debug;
+system($CURL, "--config", $curl_args_file_name, @ARGV);
 my $curl_result = $?;
 
 if ($curl_result == -1) {
@@ -210,15 +271,15 @@ List hosted zones:
 
     \$ $PROGNAME
 
+Get records for hosted zone Z123456:
+
+    \$ $PROGNAME -z Z123456
+
 Create new hosted zone:
 
     \$ $PROGNAME --keyname fred-personal -- -X POST \\
         -H \"Content-Type: text/xml; charset=UTF-8\" \\
         --upload-file create_request.xml
-
-Get hosted zone Z123456:
-
-    \$ $PROGNAME -z Z123456
 
 EOF
     return;

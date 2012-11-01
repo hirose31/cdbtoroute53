@@ -24,15 +24,11 @@ cdbtoroute53.pl - Convert a TinyDNS CDB, or the differences between two
 
 This script generates CreateHostedZoneRequest XML.
 
+Usage:
+
+    cdbtoroute53.pl --zonename example.com [--previous-cdb old.cdb] [--cdb data.cdb]
+
 Dependencies: Data::GUID Net::DNS CDB_File
-
-For help, try:
-
-cdbtoroute53.pl --help
-
-Usage example:
-
-cdbtoroute53.pl --zonename example.com [--previous-cdb old.cdb] --cdb data.cdb
 
 =head1 OPTIONS
 
@@ -40,9 +36,9 @@ cdbtoroute53.pl --zonename example.com [--previous-cdb old.cdb] --cdb data.cdb
 
 =item B<--help>
 
-Print a help message and exits.
+Prints this help message and exits.
 
-=item B<--zonename> [zonename]
+=item B<z, --zonename> [zonename]
 
 CDBs contain records that span many zones. This script operates on just one zone at a time,
 specify the zone with this option.
@@ -53,7 +49,7 @@ If this argument is supplied, this script will detect the differences between th
 and the CDB supplied by the --cdb argument. This set of differences will be translated
 into a set of DELETE and CREATE changes.
 
-=item B<--cdb> [cdbfile]
+=item B<c, --cdb> [cdbfile]
 
 The CDB file to parse for the current desired state of DNS data.
 (default: ./data.cdb)
@@ -96,8 +92,8 @@ my $previous_cdb  = "";
 
 my $options = GetOptions(
     "previous-cdb=s"    => \$previous_cdb,
-    "cdb=s"             => \$cdb,
-    "zonename=s"        => \$zonename,
+    "c|cdb=s"             => \$cdb,
+    "z|zonename=s"        => \$zonename,
     "help"              => \$help,
 );
 

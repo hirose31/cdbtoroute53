@@ -44,7 +44,7 @@ my $SECRETSFILENAME=".aws-secrets";
 my $EXECFILE=$FindBin::Bin;
 my $LOCALSECRETSFILE = $EXECFILE . "/" . $SECRETSFILENAME;
 my $HOMESECRETSFILE = $ENV{HOME} . "/" . $SECRETSFILENAME;
-my $DEFAULTSECRETSFILE = -f $LOCALSECRETSFILE? $LOCALSECRETSFILE : $HOMESECRETSFILE;
+my $DEFAULTSECRETSFILE = -f $LOCALSECRETSFILE ? $LOCALSECRETSFILE : $HOMESECRETSFILE;
 my $secretsFile = $DEFAULTSECRETSFILE;
 my $keyFile;
 my $keyFriendlyName;
@@ -173,7 +173,7 @@ For security reasons, this tool will not accept your AWS secret access key on th
 command line. Instead, you need to store them in one of the following locations:
 
     $LOCALSECRETSFILE
-    $secretsFile
+    $HOMESECRETSFILE
 
 Or pass it on the command line using the --keyfile flag.
 

@@ -54,7 +54,7 @@ my $help = 0;
 
 GetOptions(
     'f|keyfile:s' => \$keyFile,
-    'k|keyname=s' => \$keyFriendlyName,
+    'k|keyname:s' => \$keyFriendlyName,
     'z|zone:s'  => \$zoneId,
     'debug'     => \$debug,
     'help',     => \$help,
@@ -62,8 +62,8 @@ GetOptions(
 
 $secretsFile = $keyFile if defined $keyFile;
 
-if (!defined $keyFriendlyName || $help) {
-    print STDERR "Usage: $PROGNAME --keyname <friendly key name> [--zone zone_id] -- [curl-options]\n\n";
+if ($help) {
+    print STDERR "Usage: $PROGNAME [--keyname name>] [--zone zone_id] -- [curl-options]\n\n";
     print_secrets_file_usage();
     print STDERR "\n---\n";
     print_example_usage();
@@ -90,16 +90,28 @@ if (-f $secretsFile) {
     exit 2;
 }
 
-# look up the key by friendly name
-my $keyentry = $awsSecretAccessKeys{$keyFriendlyName};
-if (!defined $keyentry) {
-    print STDERR "I can't find a key with friendly name $keyFriendlyName.\n";
-    print STDERR "Do you need to add it to $secretsFile?\n";
-    print STDERR "\n";
-    if (scalar(%awsSecretAccessKeys)) {
-        print STDERR "Or maybe try one of these keys that I already know about:\n";
-        print STDERR "\t" . join(", ", keys(%awsSecretAccessKeys)) . "\n";
+my $keyentry;
+my @keys = keys(%awsSecretAccessKeys);
+if (defined $keyFriendlyName) {
+    # look up the key by friendly name
+    $keyentry = $awsSecretAccessKeys{$keyFriendlyName};
+    if (!defined $keyentry) {
+        print STDERR "I can't find a key with friendly name $keyFriendlyName.\n";
+        print STDERR "Do you need to add it to $secretsFile?\n";
+        print STDERR "\n";
+        if (scalar(%awsSecretAccessKeys)) {
+            print STDERR "Or maybe try one of these keys that I already know about:\n";
+            print STDERR "\t" . join(", ", @keys) . "\n";
+        }
+        exit 3;
     }
+
+} elsif (length @keys == 1) {
+    # use only avail key
+    $keyentry = $awsSecretAccessKeys{shift(@keys)};
+
+} elsif (length @keys == 0) {
+    print STDERR "Found empty key file $secretsFile\n";
     exit 3;
 }
 
@@ -194,7 +206,7 @@ Examples:
 
 List hosted zones:
 
-    \$ $PROGNAME --keyname fred-personal
+    \$ $PROGNAME
 
 Create new hosted zone:
 
@@ -204,7 +216,7 @@ Create new hosted zone:
 
 Get hosted zone Z123456:
 
-    \$ $PROGNAME -k fred-personal -z Z123456
+    \$ $PROGNAME -z Z123456
 
 EOF
     return;

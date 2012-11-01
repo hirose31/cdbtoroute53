@@ -18,6 +18,7 @@ use strict;
 # begin customizing here
 
 my $CURL = "curl";
+my $URL  = "https://route53.amazonaws.com/2010-10-01/hostedzone";
 
 # stop customizing here
 
@@ -47,20 +48,22 @@ my $DEFAULTSECRETSFILE = -f $LOCALSECRETSFILE? $LOCALSECRETSFILE : $HOMESECRETSF
 my $secretsFile = $DEFAULTSECRETSFILE;
 my $keyFile;
 my $keyFriendlyName;
+my $zoneId;
 my $debug = 0;
 my $help = 0;
 
 GetOptions(
-    'keyfile:s' => \$keyFile,
-    'keyname=s' => \$keyFriendlyName,
-    'debug' => \$debug,
-    'help', => \$help,
+    'f|keyfile:s' => \$keyFile,
+    'k|keyname=s' => \$keyFriendlyName,
+    'z|zone:s'  => \$zoneId,
+    'debug'     => \$debug,
+    'help',     => \$help,
 );
 
 $secretsFile = $keyFile if defined $keyFile;
 
 if (!defined $keyFriendlyName || $help) {
-    print STDERR "Usage: $PROGNAME --keyname <friendly key name> -- [curl-options]\n\n";
+    print STDERR "Usage: $PROGNAME --keyname <friendly key name> [--zone zone_id] -- [curl-options]\n\n";
     print_secrets_file_usage();
     print STDERR "\n---\n";
     print_example_usage();
@@ -104,7 +107,7 @@ my $aws_key_id = $keyentry->{id};
 my $aws_secret_key = $keyentry->{key};
 
 # don't assume the local clock is correct -- fetch the Date according to the server
-my $base_url = find_base_url_from_args(@ARGV);
+my $base_url = find_base_url_from_args($URL);
 if (!defined $base_url) {
     print STDERR "I couldn't find anything that looks like a URL in your curl arguments.\n\n";
     print_example_usage();
@@ -126,6 +129,12 @@ print $curl_args_file "header = \"Date: $server_date\"\n";
 print $curl_args_file "header = \"X-Amzn-Authorization: AWS3-HTTPS AWSAccessKeyId=$aws_key_id,Algorithm=HmacSHA1,Signature=$signature\"\n";
 
 close $curl_args_file or die "Couldn't close curl config file: $!";
+
+my $url = $URL;
+if ($zoneId) {
+    $url .= "/$zoneId";
+}
+push @ARGV, $url;
 
 # fork/exec curl, forwarding the user's command line arguments
 system($CURL, @ARGV, "--config", $curl_args_file_name);
@@ -151,6 +160,8 @@ command line. Instead, you need to store them in one of the following locations:
 
     $LOCALSECRETSFILE
     $secretsFile
+
+Or pass it on the command line using the --keyfile flag.
 
 This file must be owned by you, and must be readable by only you.
 
@@ -183,20 +194,17 @@ Examples:
 
 List hosted zones:
 
-    \$ $PROGNAME --keyname fred-personal -- \\
-        https://route53.amazonaws.com/2010-10-01/hostedzone
+    \$ $PROGNAME --keyname fred-personal
 
 Create new hosted zone:
 
     \$ $PROGNAME --keyname fred-personal -- -X POST \\
         -H \"Content-Type: text/xml; charset=UTF-8\" \\
-        --upload-file create_request.xml \\
-        https://route53.amazonaws.com/2010-10-01/hostedzone
+        --upload-file create_request.xml
 
 Get hosted zone Z123456:
 
-    \$ $PROGNAME --keyname fred-personal -- \\
-        https://route53.amazonaws.com/2010-10-01/hostedzone/Z123456
+    \$ $PROGNAME -k fred-personal -z Z123456
 
 EOF
     return;

@@ -197,12 +197,11 @@ close $curl_args_file or die "Couldn't close curl config file: $!";
 
 # modify ARGV
 if ($create) {
-  push @ARGV, '-X POST', '-H "Content-Type: text/xml; charset=UTF-8"',
+  push @ARGV, '-X', 'POST',
+              '-H', 'Content-Type: text/xml; charset=UTF-8',
               '--upload-file', $createFile;
 }
-if ($debug) {
-  unshift @ARGV, "-v"
-}
+unshift @ARGV, "-v" if $debug;
 my $url = $URL;
 $url .= "/$zoneId" if $zoneId;
 $url .= '/rrset' if $create;

@@ -6,6 +6,14 @@ Amazon Route 53 ChangeResourceRecordSetsRequest XML.
 
 ### USAGE
 
+Install the following dependencies from CPAN:
+
+```
+Data::GUID Net::DNS CDB_File
+```
+
+Then run:
+
 ```bash
 cdbtoroute53.pl --zonename example.com | dnscurl.pl -c -z Z123456
 ```

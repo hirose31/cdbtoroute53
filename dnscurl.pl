@@ -235,7 +235,7 @@ sub find_base_url_from_args {
 
 sub fetch_server_date {
     my ($url) = @_;
-    my $curl_output_lines = run_cmd_read($CURL, "--progress-bar", "-I", "--max-time", "5", "--url", $url);
+    my $curl_output_lines = run_cmd_read($CURL, "-s", "-I", "--max-time", "5", "--url", $url);
     for my $line (@$curl_output_lines) {
         if ($line =~ /^Date:\s+([[:print:]]+)/) {
             return $1;

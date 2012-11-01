@@ -12,13 +12,27 @@ Install the following dependencies from CPAN:
 Data::GUID Net::DNS CDB_File
 ```
 
-Then run:
+Configure a secret file for dnscurl.pl called ``.aws-secrets``
+
+```bash
+$ cat .aws-secrets
+%awsSecretAccessKeys = (
+    'mykeyname' => {
+        id => 'foobar',
+        key => 'changeme',
+    },
+);
+
+$ chmod 600 .aws-secrets
+```
+
+Then run (assumes data.cdb is in current dir):
 
 ```bash
 cdbtoroute53.pl --zonename example.com | dnscurl.pl -c -z Z123456
 ```
 
-Use ``--help`` for each program for more options.
+Use ``--help`` on each program for more options.
 
 
 ### ORIGINAL CODE

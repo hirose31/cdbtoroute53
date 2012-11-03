@@ -1,38 +1,34 @@
-#!/usr/bin/env perl 
+#!/usr/bin/env perl
 
-# Copyright 2010 Amazon Technologies, Inc.  
+# Copyright 2010 Amazon Technologies, Inc.
 # Licensed under the Apache License, Version 2.0 (the "License");
-# 
-# You may not use this file except in compliance with the License. 
+#
+# You may not use this file except in compliance with the License.
 # You may obtain a copy of the License at:
 #
 # http://aws.amazon.com/apache2.0
 #
-# This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+# This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 # CONDITIONS OF ANY KIND, either express or implied.
 #
-# See the License for the specific language governing permissions and 
-# limitations under the License. 
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 =head1 cdbtoroute53.pl
 
 cdbtoroute53.pl - Convert a TinyDNS CDB, or the differences between two
-                  TinyDNS CDBs, to Amazon Route 53 ChangeResourceRecordSetsRequest 
+                  TinyDNS CDBs, to Amazon Route 53 ChangeResourceRecordSetsRequest
                   XML
 
 =head1 SYNOPSIS
 
 This script generates CreateHostedZoneRequest XML.
 
-Dependencies: Data::GUID.
+Usage:
 
-For help, try:
+    cdbtoroute53.pl --zonename example.com [--previous-cdb old.cdb] [--cdb data.cdb]
 
-cdbtoroute53.pl --help
-
-Usage example:
-
-cdbtoroute53.pl --zonename example.com --hosted-zone-id Z123ABCD [--previous-cdb old.cdb] --cdb data.cdb
+Dependencies: Data::GUID Net::DNS CDB_File
 
 =head1 OPTIONS
 
@@ -40,16 +36,12 @@ cdbtoroute53.pl --zonename example.com --hosted-zone-id Z123ABCD [--previous-cdb
 
 =item B<--help>
 
-Print a help message and exits.
+Prints this help message and exits.
 
-=item B<--zonename> [zonename]
+=item B<z, --zonename> [zonename]
 
 CDBs contain records that span many zones. This script operates on just one zone at a time,
 specify the zone with this option.
-
-=item B<--hosted-zone-id> [zone id]
-
-The Route53 Hosted Zone ID for the suppled zone
 
 =item B<--previous-cdb> [cdbfile]
 
@@ -57,10 +49,11 @@ If this argument is supplied, this script will detect the differences between th
 and the CDB supplied by the --cdb argument. This set of differences will be translated
 into a set of DELETE and CREATE changes.
 
-=item B<--cdb> [cdbfile]
+=item B<c, --cdb> [cdbfile]
 
 The CDB file to parse for the current desired state of DNS data.
-G
+(default: ./data.cdb)
+
 =back
 
 =cut
@@ -76,7 +69,6 @@ use Net::DNS::Domain;
 use Net::DNS::DomainName;
 use Net::DNS::RR;
 use Net::DNS::Text;
-use Data::Dumper;
 
 # Net::DNS:RR to Value conversion
 my $TYPES = {
@@ -100,14 +92,27 @@ my $previous_cdb  = "";
 
 my $options = GetOptions(
     "previous-cdb=s"    => \$previous_cdb,
-    "cdb=s"             => \$cdb,
-    "zonename=s"        => \$zonename,
+    "c|cdb=s"           => \$cdb,
+    "z|zonename=s"      => \$zonename,
     "help"              => \$help,
 );
 
-if ($help or !$options or $zonename eq "" or $cdb eq "") {
+# allow a bare zone name as the only command line arg
+if ($zonename eq "" && scalar @ARGV > 0) {
+    $zonename = shift(@ARGV);
+}
+
+if ($help or !$options or $zonename eq "") {
     pod2usage(1);
     exit;
+}
+
+if ($cdb eq "") {
+    $cdb = "data.cdb";
+    if (!-f $cdb) {
+        print STDERR "./data.cdb doesn't exist. try passing --cdb <file>\n";
+        exit 1;
+    }
 }
 
 # Canonicalise the zone we are searching for
@@ -151,7 +156,7 @@ sub parse_cdb {
         # Convert into a Net::DNS::RR object
         my $rdata = substr($value, 15);
         my $rr = Net::DNS::DomainName->new( $domain )->encode(0, {}) .
-                 pack("n", $type) . pack("n", 1) . pack("N", $ttl) . 
+                 pack("n", $type) . pack("n", 1) . pack("N", $ttl) .
                  pack("n", length($rdata)) . $rdata;
         my ($rrobj, $offset) = Net::DNS::RR->decode(\$rr, 0);
 
@@ -159,7 +164,7 @@ sub parse_cdb {
         if (!defined( $TYPES->{ $rrobj->type })) {
             die ("Encountered a record of type '" . $rrobj->type . "' for '$domain'. Amazon Route 53 does not currently support this record type");
         }
-        
+
         # Check that the TTLs match
         if (defined($parsed_tree->{ $domain }->{ $rrobj->type }->{TTL})) {
             if ($parsed_tree->{ $domain }->{ $rrobj->type }->{TTL} != $rrobj->ttl) {
@@ -209,7 +214,7 @@ sub arrays_equal
 
     my @a = sort(@{ $a });
     my @b = sort(@{ $b });
-    
+
     if (length(@a) != length(@b)) {
         return 0;
     }
@@ -230,8 +235,8 @@ if ($previous_cdb ne "") {
 }
 
 my $desired_state = parse_cdb($zone, $cdb);
-    
-print qq{<?xml version="1.0" encoding="UTF-8"?>\n<ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2011-05-05/">\n} .
+
+print qq{<?xml version="1.0" encoding="UTF-8"?>\n<ChangeResourceRecordSetsRequest xmlns="https://route53.amazonaws.com/doc/2012-02-29/">\n} .
       qq{  <ChangeBatch>\n    <Comment>Change made with cdbtoroute53.pl</Comment>\n    <Changes>\n};
 
 # Create anything as neccessary
@@ -242,7 +247,7 @@ foreach my $domain (  keys %{ $desired_state } ) {
 
             # Do nothing if previous and desired state is the same
             if ($previous_state->{$domain}->{$type}->{TTL} == $desired_state->{$domain}->{$type}->{TTL} &&
-                arrays_equal($previous_state->{$domain}->{$type}->{ResourceRecord}, 
+                arrays_equal($previous_state->{$domain}->{$type}->{ResourceRecord},
                              $desired_state->{$domain}->{$type}->{ResourceRecord})) {
                 # Remove from the previous state
                 delete $previous_state->{$domain}->{$type};

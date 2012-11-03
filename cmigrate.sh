@@ -13,7 +13,7 @@ echo
 ./cdbtoroute53.pl -z $1 > $1.txt
 cat $1.txt | ./dnscurl.pl -c -z $ZONEID > $1.out
 grep ErrorResponse $1.out >/dev/null
-RET = $?
+RET=$?
 
 cat $1.out
 rm $1.out

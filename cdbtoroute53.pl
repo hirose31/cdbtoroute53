@@ -92,10 +92,15 @@ my $previous_cdb  = "";
 
 my $options = GetOptions(
     "previous-cdb=s"    => \$previous_cdb,
-    "c|cdb=s"             => \$cdb,
-    "z|zonename=s"        => \$zonename,
+    "c|cdb=s"           => \$cdb,
+    "z|zonename=s"      => \$zonename,
     "help"              => \$help,
 );
+
+# allow a bare zone name as the only command line arg
+if ($zonename eq "" && scalar @ARGV > 0) {
+    $zonename = shift(@ARGV);
+}
 
 if ($help or !$options or $zonename eq "") {
     pod2usage(1);
